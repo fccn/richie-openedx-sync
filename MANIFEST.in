@@ -1,0 +1,5 @@
+include AUTHORS.txt
+include README.md
+recursive-include richie_openedx_sync *.py
+include requirements.txt
+

@@ -1,0 +1,6 @@
+richie_openedx_sync.egg-info
+
+venv
+
+*.pyc
+**/__pycache__
