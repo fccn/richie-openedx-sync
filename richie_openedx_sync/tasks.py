@@ -70,13 +70,15 @@ def update_course_on_publish(*args, **kwargs):
 
         richie_url = hook.get("url")
         timeout = int(hook.get("timeout", 5))
-        
+        auth = (hook.get("auth_user"), hook.get("auth_pass")) if "auth_user" in hook else None
+
         try:
             response = requests.post(
                 richie_url,
                 json=data,
                 headers={"Authorization": "SIG-HMAC-SHA256 {:s}".format(signature)},
                 timeout=timeout,
+                auth=auth,
             )
             response.raise_for_status()
         except requests.exceptions.HTTPError as e:
