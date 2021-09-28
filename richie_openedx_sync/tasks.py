@@ -9,6 +9,8 @@ from django.conf import settings
 from xmodule.modulestore.django import modulestore
 from openedx.core.djangoapps.site_configuration import helpers as configuration_helpers
 from opaque_keys.edx.keys import CourseKey
+from student.models import CourseEnrollment
+
 
 log = logging.getLogger(__name__)
 
@@ -43,6 +45,7 @@ def update_course_on_publish(*args, **kwargs):
         "enrollment_start": course.enrollment_start and course.enrollment_start.isoformat(),
         "enrollment_end": course.enrollment_end and course.enrollment_end.isoformat(),
         "languages": [course.language or settings.LANGUAGE_CODE],
+        "enrollment_count" : CourseEnrollment.objects.filter(course_id=course_id).count()
     }
 
     hooks = configuration_helpers.get_value_for_org(
