@@ -11,59 +11,19 @@ class RichieOpenEdxSyncConfig(AppConfig):
 
     name = "richie_openedx_sync"
     verbose_name = "Richie Open edX Sync"
-    # plugin_app = {
-    #     "settings_config": {
-    #         'cms.djangoapp': {
-    #             'common': {'relative_path': 'settings.common'},
-    #             'test': {'relative_path': 'settings.test'},
-    #             "production": {"relative_path": "settings.production"},
-    #         },
-    #     },
 
-    #     # Configuration setting for Plugin Signals for this app.
-    #     'signals_config': {
-
-    #         # Configure the Plugin Signals for each Project Type, as needed.
-    #         'cms.djangoapp': {
-
-    #             # List of all plugin Signal receivers for this app and project type.
-    #             'receivers': [{
-
-    #                 # The name of the app's signal receiver function.
-    #                 'receiver_func_name': 'update_course_meta_data_on_studio_publish',
-
-    #                 # The full path to the module where the signal is defined.
-    #                 'signal_path': 'xmodule.modulestore.django.SignalHandler',
-
-    #                 # The value for dispatch_uid to pass to Signal.connect to prevent duplicate signals.
-    #                 # Optional; Defaults to full path to the signal's receiver function.
-    #                 # 'dispatch_uid': 'richie_openedx_sync.studio.signals.update_course_on_publish',
-
-    #             }],
-    #         }
-    #     },
-    # }
+    # This app can not be configured using the normal way of adding plugin application to Open edX
+    # because this app uses the `SignalHandler.course_published` signal. Currently this signal is
+    # not using the recommended way of configuring open edX signal so they could be used by 
+    # external applications - `ENROLLMENT_TRACK_UPDATED = Signal(...)`
+    # plugin_app = { ... }
 
     def ready(self):
         """
         Method to perform actions after apps registry is ended
         """
-        # super.ready()
-    #     #from richie_openedx_sync.permissions import load_permissions
-    #     #load_permissions()
-
-        # from .signals import update_course_meta_data_on_studio_publish
-
-        # from xmodule.modulestore.django import SignalHandler
-        # SignalHandler.course_published.connect(update_course_meta_data_on_studio_publish)
-
-        # print("Richie sync ready 22!")
-
+        # Register signals
         import richie_openedx_sync.signals
 
-        # import xmodule.modulestore.django
-        # from xmodule.modulestore.django import SignalHandler
-        # from .signals import update_course_meta_data_on_studio_publish
-        # SignalHandler.course_published.connect(update_course_meta_data_on_studio_publish)
-
-
+        # Load default settings configuration
+        import richie_openedx_sync.settings

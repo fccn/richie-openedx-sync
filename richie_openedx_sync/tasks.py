@@ -23,6 +23,10 @@ def update_course_on_publish(*args, **kwargs):
     course_id = kwargs["course_id"]
     course_key = CourseKey.from_string(course_id)
     course = modulestore().get_course(course_key)
+
+    if not course:
+        raise ValueError("No course found with the course_id '{}'".format(course_id))
+
     org = course_key.org
     edxapp_domain = configuration_helpers.get_value_for_org(
         org, 
@@ -41,7 +45,8 @@ def update_course_on_publish(*args, **kwargs):
         "languages": [course.language or settings.LANGUAGE_CODE],
     }
 
-    hooks = configuration_helpers.get_value(
+    hooks = configuration_helpers.get_value_for_org(
+        org,
         'RICHIE_OPENEDX_SYNC_COURSE_HOOKS',
         getattr(settings, "RICHIE_OPENEDX_SYNC_COURSE_HOOKS", [])
     )
