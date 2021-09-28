@@ -100,5 +100,8 @@ setup(
         "cms.djangoapp": [
             "richie_openedx_sync = richie_openedx_sync.apps:RichieOpenEdxSyncConfig",
         ],
+        "lms.djangoapp": [
+            "richie_openedx_sync = richie_openedx_sync.apps:RichieOpenEdxSyncConfig",
+        ],
     }
 )
