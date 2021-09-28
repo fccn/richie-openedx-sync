@@ -16,9 +16,9 @@ log = logging.getLogger(__name__)
 
 
 @shared_task
-def update_course_on_publish(*args, **kwargs):
+def sync_course_run_information_to_richie(*args, **kwargs):
     """
-    Synchronize an OpenEdX course, identified by its course key, with a Richie instance.
+    Synchronize an OpenEdX course run, identified by its course key, to all Richie instances.
     """
     log.info("Entering richie update course on publish")
 

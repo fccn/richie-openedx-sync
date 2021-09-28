@@ -22,8 +22,8 @@ class RichieOpenEdxSyncConfig(AppConfig):
         """
         Method to perform actions after apps registry is ended
         """
-        # Register signals
-        import richie_openedx_sync.signals
-
         # Load default settings configuration
         import richie_openedx_sync.settings
+
+        # Register signals
+        import richie_openedx_sync.signals

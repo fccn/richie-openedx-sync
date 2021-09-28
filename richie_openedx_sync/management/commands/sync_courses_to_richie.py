@@ -7,7 +7,7 @@ from django.core.management.base import BaseCommand
 from six import text_type
 
 from xmodule.modulestore.django import modulestore
-from richie_openedx_sync.tasks import update_course_on_publish
+from richie_openedx_sync.tasks import sync_course_run_information_to_richie
 from opaque_keys.edx.keys import CourseKey
 
 
@@ -60,7 +60,7 @@ def synchronize_courses(course_id=None):
         print("-" * 80)
         print(u"Synchronizing to Richie course id = {0}".format(course_id))
         try:
-            update_course_on_publish(course_id=str(course_id))
+            sync_course_run_information_to_richie(course_id=str(course_id))
         except Exception as err:  # pylint: disable=broad-except
             failed_courses.append(text_type(course_id))
             print(u"=" * 30 + u"> Oops, failed to sync {0}".format(course_id))

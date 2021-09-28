@@ -11,7 +11,11 @@ There is also a Django command that permit to synchronize all existing courses.
 1. [Instructions](docs/installation_devstack.md) to install on a running Open edX [devstack](https://github.com/edx/devstack)
 2. [Instructions](docs/installation_production.md) to install on a production grade Open edX using ansible - [configuration](https://github.com/edx/configuration)
 
-## Contributions
+## Open edX compatibility
+
+This app has been tested with Open edX Juniper, but it should run on newer versions.
+
+## Contributions / Acknowledgments
 
 - FUN-MOOC [fun-apps courses](https://github.com/openfun/fun-apps)
 - [Richie](https://richie.education/) and on [Github](https://github.com/openfun/richie)
