@@ -67,7 +67,7 @@ setup(
     url="https://github.com/fccn/richie-openedx-sync",
     description="NAU openedX extensions",
     long_description=long_description,
-    install_requires=load_requirements('requirements.txt'),
+    install_requires=load_requirements('requirements/base.in'),
     scripts=[],
     license="AGPL 3.0",
     keywords="Django, Open edX, MOOC, Richie",
