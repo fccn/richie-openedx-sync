@@ -42,12 +42,14 @@ on the same docker-compose then it isn't easy connect both docker containers.
 Next it is described an easy approach for rapid development and verification.
 
 You need to add the `richie.local.dev` virtual host with your local IP address to the hosts
-file on your host machine or to the Studio hosts.
+file on the Studio docker container.
 
 Find your local IP Address, eg. like 192.168....
 
 Add the next line to the `/etc/hosts` file of your host machine:
 ```bash
+make studio-shell
+vim /etc/hosts
 <Your local IP Address> richie.local.dev
 ```
 
