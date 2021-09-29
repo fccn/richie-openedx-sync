@@ -34,7 +34,8 @@ So you should have your folders like this on your machine:
 
 ## Active the `richie_openedx_sync` Django application
 On the Open edX devstack edit the file and add the `richie_openedx_sync` app
-to the `INSTALLED_APPS` on the file `cms/envs/devstack.py` within edx-platform.
+to the `INSTALLED_APPS` on the file `cms/envs/devstack.py` and `lms/envs/devstack.py` 
+within edx-platform.
 
 ## Hosts
 When your are developing the connection between Open edX and Richie, because both stacks aren't
