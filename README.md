@@ -15,6 +15,40 @@ There is also a Django command that permit to synchronize all existing courses.
 
 This app has been tested with Open edX Juniper, but it should run on newer versions.
 
+### Making a release
+
+Making a release is automated. The choice between a minor or a revision type of release is
+determined by the presence of an addition, a change or a removal. A revision release is made
+if only fixes are present in the changelog, otherwise a minor release is made.
+
+For example, to release and commit all changes:
+
+```
+bin/release --commit
+```
+
+If you consider that the changelog contains breaking changes, you can force a major release
+by passing the parameter `--major`.
+
+
+To release but without committing the changes:
+
+```
+bin/release --major
+```
+
+To release and committing the changes:
+
+```
+bin/release --commit
+```
+
+After merging release commits to the master branch, you can tag them automatically by running:
+
+```
+bin/tag -c
+```
+
 ## Contributions / Acknowledgments
 
 - FUN-MOOC [fun-apps courses](https://github.com/openfun/fun-apps)
