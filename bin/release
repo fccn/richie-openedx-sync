@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+PROJECT_DIRECTORY=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/..
+
+# console colors
+declare -r COLOR_INFO="\033[0;36m"
+declare -r COLOR_RESET="\033[0m"
+
+CHANGELOG_LOCATION="CHANGELOG.md"
+INIT_LOCATION="richie_openedx_sync/__init__.py"
+
+function usage(){
+    echo -e "Usage: ${0} [OPTIONS]
+
+OPTIONS:
+  -h, --help       print this message
+  -m, --major      force a major release (breaking change)
+  -c, --commit     commit the release to git log
+"
+}
+
+# Bump a release according to its changelog.
+#
+# Usage: release IS_MAJOR SHOULD_COMMIT
+#
+#  IS_MAJOR       0|1     whether we should force a major release (breaking change)
+#  SHOULD_COMMIT  0|1     whether we should commit the release to the git log
+function release() {
+    is_major=$1
+    should_commit=$2
+
+    # Select the Unreleased section of the changelog (between [Unreleased] and the last release).
+    #
+    # According to the sed documentation :
+    # - An exclamation mark '!' after a regex ('/RE/!') will select all lines that do NOT match that regex
+    # - The `d` instruction will delete the selected lines.
+    changelog=$(sed "/## \[Unreleased/,/## \[/!d" "${CHANGELOG_LOCATION}" | tail -n +2)
+
+    # Extract the last version released from changelog
+    current_version=$(echo "${changelog}" | grep "## \[" | sed -E "s/.*\[(.*)\].*/\1/")
+
+    # Split current version to array with major/minor/revision release numbers
+    IFS=\. read -r -a current_version_array <<<"${current_version}"
+
+    # Bump version to above major, minor or revision number depending on changelog content
+    if [[ "${is_major}" == 1  ]]; then
+        # Major release
+        major_release=$((current_version_array[0] + 1))
+        new_version="${major_release}.0.0"
+    else
+        if ! echo "${changelog}" | grep "###" &> /dev/null; then
+            # No changes since the last release, do nothing
+            echo -e "${COLOR_INFO}Nothing to release ${COLOR_RESET}"
+            return 0
+        fi
+        if echo "${changelog}" | grep "###" | grep -v "Fixed" &> /dev/null; then
+            # Minor release
+            minor_release=$((current_version_array[1] + 1))
+            new_version="${current_version_array[0]}.${minor_release}.0"
+        else
+            # Revision release (fix)
+            revision_release=$((current_version_array[2] + 1))
+            new_version="${current_version_array[0]}.${current_version_array[1]}.${revision_release}"
+        fi
+    fi
+
+    echo -e "${COLOR_INFO}Creating release v${new_version} ${COLOR_RESET}"
+
+    # Update CHANGELOG.md
+    # - Add tag and date for the new releave in the form: ## [2.10.2]  2020-10-07
+    sed -i -E "/Unreleased/a \\\n## [${new_version}] - $(date +'%Y-%m-%d')" "${CHANGELOG_LOCATION}"
+    # - Add release link in footer
+    sed -i "s/^\[unreleased\].*$/[unreleased]: https:\/\/github.com\/fccn\/richie-openedx-sync\/compare\/${new_version}...HEAD/gi" "${CHANGELOG_LOCATION}"
+    sed -i -E "/^\[${current_version}\]/i [${new_version}]: https://github.com/fccn/richie-openedx-sync/compare/${current_version}...${new_version}" "${CHANGELOG_LOCATION}"
+
+    # Update __init__.py version
+    sed -i -E "s/(__version__ = \")(.*)\"/\1${new_version}\"/" "${INIT_LOCATION}"
+
+    if [[ "${should_commit}" == 1 ]]; then
+        # Commit changes to git log
+        # - Add only the modified files
+        git add "${CHANGELOG_LOCATION}"
+        git add "${INIT_LOCATION}"
+
+        # - Reuse release description from CHANGELOG.md
+        changelog=$(echo "${changelog}" | sed "\$d;s/### //g")
+
+        # - Create commit respecting gitmoji/gitlint format
+        git commit -m "🔖 bump to version ${new_version}" -m "${changelog}"
+    fi
+}
+
+# declare variables
+is_major=0
+should_commit=0
+
+# Parse options
+for i in "$@"
+do
+    case $i in
+        -h|--help|help)
+            usage "${0}"
+            exit 0
+            ;;
+        -m|--major)
+            is_major=1
+            shift
+            ;;
+        -c|--commit)
+            should_commit=1
+            shift
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
+
+release ${is_major} ${should_commit}
