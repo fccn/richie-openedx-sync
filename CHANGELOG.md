@@ -8,6 +8,10 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## Added
+
+- Send course `catalog_visibility` to richie
+
 ## [1.0.0] - 2021-11-26
 
 ### Added

@@ -45,7 +45,8 @@ def sync_course_run_information_to_richie(*args, **kwargs):
         "enrollment_start": course.enrollment_start and course.enrollment_start.isoformat(),
         "enrollment_end": course.enrollment_end and course.enrollment_end.isoformat(),
         "languages": [course.language or settings.LANGUAGE_CODE],
-        "enrollment_count" : CourseEnrollment.objects.filter(course_id=course_id).count()
+        "enrollment_count": CourseEnrollment.objects.filter(course_id=course_id).count(),
+        "catalog_visibility": course.catalog_visibility,
     }
 
     hooks = configuration_helpers.get_value_for_org(
