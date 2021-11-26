@@ -8,6 +8,8 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.0.0] - 2021-11-26
+
 ### Added
 
 - Added a CHANGELOG.md to register the changes of the project
