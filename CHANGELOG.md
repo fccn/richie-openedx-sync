@@ -8,6 +8,10 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## Fixed
+
+- When configured with multiple Richie sites, don't stop on the 1st error.
+
 ## Added
 
 - Send course `catalog_visibility` to richie
