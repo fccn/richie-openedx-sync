@@ -10,6 +10,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Fixed
 
+- Fix missing failed messages on log
 - When configured with multiple Richie sites, don't stop on the 1st error.
 
 ## Added

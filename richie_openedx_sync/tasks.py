@@ -94,18 +94,19 @@ def sync_course_run_information_to_richie(*args, **kwargs) -> Dict[str, bool]:
             result[richie_url] = True
         except requests.exceptions.HTTPError as e:
             status_code = response.status_code
-            log.debug(e, exc_info=True)
             msg = "Error synchronizing course {} to richie site {} it returned the HTTP status code {}".format(
                 course_key, richie_url, status_code
             )
+            log.error(e, exc_info=True)
             log.error(msg)
+            log.error(response.content)
             result[richie_url] = False
 
         except requests.exceptions.RequestException as e:
-            log.debug(e, exc_info=True)
             msg = "Error synchronizing course {} to richie site {}".format(
                 course_key, richie_url
             )
+            log.error(e, exc_info=True)
             log.error(msg)
             result[richie_url] = False
 
