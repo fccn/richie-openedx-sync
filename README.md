@@ -15,7 +15,7 @@ There is also a Django command that permit to synchronize all existing courses.
 
 This app has been tested with Open edX Juniper, but it should run on newer versions.
 
-### Making a release
+## Making a release
 
 Making a release is automated. The choice between a minor or a revision type of release is
 determined by the presence of an addition, a change or a removal. A revision release is made
