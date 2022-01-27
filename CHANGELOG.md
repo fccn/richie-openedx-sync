@@ -8,13 +8,15 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-## Fixed
+## [1.1.0] - 2022-01-27
+
+### Fixed
 
 - Fix readme
 - Fix missing failed messages on log
 - When configured with multiple Richie sites, don't stop on the 1st error.
 
-## Added
+### Added
 
 - Send course `catalog_visibility` to richie
 
