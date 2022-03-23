@@ -35,22 +35,30 @@ def sync_course_run_information_to_richie(*args, **kwargs) -> Dict[str, bool]:
     course = modulestore().get_course(course_key)
 
     if not course:
-        raise ValueError("No course found with the course_id '{}'".format(course_id))
+        raise ValueError(
+            "No course found with the course_id '{}'".format(course_id))
 
     org = course_key.org
     edxapp_domain = configuration_helpers.get_value_for_org(
         org, "LMS_BASE", settings.LMS_BASE
     )
+    course_start = course.start and course.start.isoformat()
+    course_end = course.end and course.end.isoformat()
+    enrollment_start = course.enrollment_start and course.enrollment_start.isoformat()
+    enrollment_end = course.enrollment_end and course.enrollment_end.isoformat()
+
+    # Enrollment start date should fallback to course start date, by default Open edX uses the
+    # course start date for the enrollment start date when the enrollment start date isn't defined.
+    enrollment_start = enrollment_start or course_start
 
     data = {
         "resource_link": "https://{:s}/courses/{!s}/info".format(
             edxapp_domain, course_key
         ),
-        "start": course.start and course.start.isoformat(),
-        "end": course.end and course.end.isoformat(),
-        "enrollment_start": course.enrollment_start
-        and course.enrollment_start.isoformat(),
-        "enrollment_end": course.enrollment_end and course.enrollment_end.isoformat(),
+        "start": course_start,
+        "end": course_end,
+        "enrollment_start": enrollment_start,
+        "enrollment_end": enrollment_end,
         "languages": [course.language or settings.LANGUAGE_CODE],
         "enrollment_count": CourseEnrollment.objects.filter(
             course_id=course_id
@@ -87,7 +95,8 @@ def sync_course_run_information_to_richie(*args, **kwargs) -> Dict[str, bool]:
             response = requests.post(
                 richie_url,
                 json=data,
-                headers={"Authorization": "SIG-HMAC-SHA256 {:s}".format(signature)},
+                headers={
+                    "Authorization": "SIG-HMAC-SHA256 {:s}".format(signature)},
                 timeout=timeout,
             )
             response.raise_for_status()
