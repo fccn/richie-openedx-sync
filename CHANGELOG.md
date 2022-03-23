@@ -8,6 +8,8 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.1.1] - 2022-03-23
+
 ### Fixed
 
 - Fix fallback Richie enrollment start from course start
