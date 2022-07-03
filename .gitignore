@@ -4,3 +4,22 @@ venv
 
 *.pyc
 **/__pycache__
+
+# Packaging
+./build
+./dist
+build
+dist
+
+
+# virtualenv
+.venv
+venv
+
+
+# Site media
+data/
+
+# env
+.env
+env.d/aws
