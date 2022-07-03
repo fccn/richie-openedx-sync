@@ -11,6 +11,7 @@ from six import text_type
 from xmodule.modulestore.django import modulestore
 from richie_openedx_sync.tasks import sync_course_run_information_to_richie
 from opaque_keys.edx.keys import CourseKey
+from django.conf import settings
 
 log = logging.getLogger(__name__)
 
@@ -40,8 +41,8 @@ class Command(BaseCommand):
         course_id = kwargs["course_id"]
 
         if not course_id:
-            module_store = modulestore()
-            courses = module_store.get_courses()
+            module_store = modulestore()             
+            courses = module_store.get_courses()          
             course_ids = [x.id for x in courses]
         else:
             course_key = CourseKey.from_string(course_id)

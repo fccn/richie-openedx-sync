@@ -9,7 +9,7 @@ from celery import shared_task
 from django.conf import settings
 from opaque_keys.edx.keys import CourseKey
 from openedx.core.djangoapps.site_configuration import helpers as configuration_helpers
-from student.models import CourseEnrollment
+from common.djangoapps.student.models import CourseEnrollment
 from xmodule.modulestore.django import modulestore
 
 log = logging.getLogger(__name__)
@@ -101,6 +101,7 @@ def sync_course_run_information_to_richie(*args, **kwargs) -> Dict[str, bool]:
             )
             response.raise_for_status()
             result[richie_url] = True
+            log.info("response", response)
         except requests.exceptions.HTTPError as e:
             status_code = response.status_code
             msg = "Error synchronizing course {} to richie site {} it returned the HTTP status code {}".format(

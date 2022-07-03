@@ -4,8 +4,8 @@ Signals reveivers of Richie Open edX synchronization
 from django.dispatch import receiver
 
 from xmodule.modulestore.django import SignalHandler
-from student.signals import ENROLL_STATUS_CHANGE
-from student.models import EnrollStatusChange
+from common.djangoapps.student.signals import ENROLL_STATUS_CHANGE
+from common.djangoapps.student.models import EnrollStatusChange
 
 
 @receiver(
