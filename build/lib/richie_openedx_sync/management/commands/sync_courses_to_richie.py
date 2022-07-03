@@ -41,8 +41,11 @@ class Command(BaseCommand):
         course_id = kwargs["course_id"]
 
         if not course_id:
+            log.info(settings.CONTENTSTORE) 
+            log.info(settings.CONTENTSTORE['ENGINE'])
             module_store = modulestore()             
-            courses = module_store.get_courses()          
+            courses = module_store.get_courses() 
+            log.info("courses", courses)
             course_ids = [x.id for x in courses]
         else:
             course_key = CourseKey.from_string(course_id)
