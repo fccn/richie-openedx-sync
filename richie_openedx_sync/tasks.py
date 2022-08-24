@@ -79,6 +79,12 @@ def sync_course_run_information_to_richie(*args, **kwargs) -> Dict[str, bool]:
         log.info(msg)
         return {}
 
+    log_requests = configuration_helpers.get_value_for_org(
+        org,
+        "RICHIE_OPENEDX_SYNC_LOG_REQUESTS",
+        getattr(settings, "RICHIE_OPENEDX_SYNC_LOG_REQUESTS", False),
+    )
+
     result = {}
 
     for hook in hooks:
@@ -101,6 +107,13 @@ def sync_course_run_information_to_richie(*args, **kwargs) -> Dict[str, bool]:
             )
             response.raise_for_status()
             result[richie_url] = True
+            if log_requests:
+                status_code = response.status_code
+                msg = "Synchronized the course {} to richie site {} it returned the HTTP status code {}".format(
+                    course_key, richie_url, status_code
+                )
+                log.info(msg)
+                log.info(response.content)
         except requests.exceptions.HTTPError as e:
             status_code = response.status_code
             msg = "Error synchronizing course {} to richie site {} it returned the HTTP status code {}".format(

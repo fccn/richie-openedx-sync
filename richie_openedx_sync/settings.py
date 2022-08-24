@@ -7,3 +7,11 @@ settings.RICHIE_OPENEDX_SYNC_COURSE_HOOKS = getattr(settings, "ENV_TOKENS", {}).
     "RICHIE_OPENEDX_SYNC_COURSE_HOOKS",
     getattr(settings, "RICHIE_OPENEDX_SYNC_COURSE_HOOKS", None),
 )
+
+# Load `RICHIE_OPENEDX_SYNC_LOG_REQUESTS` setting using the open edX `ENV_TOKENS` production mode.
+# This requires the `RICHIE_OPENEDX_SYNC_LOG_REQUESTS` should be added to the `EDXAPP_ENV_EXTRA`
+# ansible deployment configuration.
+settings.RICHIE_OPENEDX_SYNC_LOG_REQUESTS = getattr(settings, "ENV_TOKENS", {}).get(
+    "RICHIE_OPENEDX_SYNC_LOG_REQUESTS",
+    getattr(settings, "RICHIE_OPENEDX_SYNC_LOG_REQUESTS", False),
+)
