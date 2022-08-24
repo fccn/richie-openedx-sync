@@ -9,7 +9,7 @@ from celery import shared_task
 from django.conf import settings
 from opaque_keys.edx.keys import CourseKey
 from openedx.core.djangoapps.site_configuration import helpers as configuration_helpers
-from student.models import CourseEnrollment
+from common.djangoapps.student.models import CourseEnrollment
 from xmodule.modulestore.django import modulestore
 
 log = logging.getLogger(__name__)
