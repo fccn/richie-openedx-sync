@@ -8,6 +8,8 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.2.0] - 2022-08-25
+
 ### Fixed
 
 - Refactor Open edX code imports.
