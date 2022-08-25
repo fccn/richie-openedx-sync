@@ -8,6 +8,16 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Refactor Open edX code imports.
+  Related with the removal of custom config of edx-platform sys.path.
+  Change code to run on Open edX Lilac and following releases.
+
+### Added
+
+- Add setting that allow to log richie requests
+
 ## [1.1.1] - 2022-03-23
 
 ### Fixed
