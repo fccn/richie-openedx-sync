@@ -8,6 +8,11 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Increase default timeout.
+- Change logging integration to Richie from ERROR to WARNING level.
+
 ## [1.2.0] - 2022-08-25
 
 ### Fixed
