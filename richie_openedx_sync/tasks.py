@@ -95,7 +95,7 @@ def sync_course_run_information_to_richie(*args, **kwargs) -> Dict[str, bool]:
         ).hexdigest()
 
         richie_url = hook.get("url")
-        timeout = int(hook.get("timeout", 5))
+        timeout = int(hook.get("timeout", 20))
 
         try:
             response = requests.post(
