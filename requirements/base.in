@@ -1,5 +1,4 @@
 # Generic requirements, they should be already installed by the Open edX
-celery
-django-celery
-edx-celeryutils
-requests
+# celery
+# edx-celeryutils
+# requests

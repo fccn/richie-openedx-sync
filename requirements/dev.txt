@@ -1,8 +1,7 @@
 # Warning: this file only contains development requirements!
 # In reality this app should use the open edX dependencies that already are installed.
-celery==3.1.26.post2
-django-celery==3.3.1
-edx-celeryutils==0.5.0
-requests==2.23.0
--e git+git://github.com/edx/edx-platform.git@open-release/juniper.master#egg=XModule&subdirectory=common/lib/xmodule
--e git+git://github.com/edx/edx-platform.git@open-release/juniper.master#egg=Open-edX
+celery==5.2.6
+edx-celeryutils==1.2.1
+requests==2.27.1
+-e git+https://github.com/openedx/edx-platform.git@open-release/nutmeg.master#egg=XModule&subdirectory=common/lib/xmodule
+-e git+https://github.com/openedx/edx-platform.git@open-release/nutmeg.master#egg=Open-edX
