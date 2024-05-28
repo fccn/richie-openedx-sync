@@ -35,11 +35,10 @@ def sync_course_run_information_to_richie(*args, **kwargs) -> Dict[str, bool]:
     course = modulestore().get_course(course_key)
 
     if not course:
-        raise ValueError(
-            "No course found with the course_id '{}'".format(course_id))
+        raise ValueError("No course found with the course_id '{}'".format(course_id))
 
     org = course_key.org
-    edxapp_domain = configuration_helpers.get_value_for_org(
+    lms_domain = configuration_helpers.get_value_for_org(
         org, "LMS_BASE", settings.LMS_BASE
     )
     course_start = course.start and course.start.isoformat()
@@ -51,18 +50,26 @@ def sync_course_run_information_to_richie(*args, **kwargs) -> Dict[str, bool]:
     # course start date for the enrollment start date when the enrollment start date isn't defined.
     enrollment_start = enrollment_start or course_start
 
-    data = {
-        "resource_link": "https://{:s}/courses/{!s}/info".format(
-            edxapp_domain, course_key
+    resource_link = configuration_helpers.get_value_for_org(
+        org,
+        "RICHIE_OPENEDX_SYNC_RESOURCE_LINK",
+        getattr(
+            settings,
+            "RICHIE_OPENEDX_SYNC_RESOURCE_LINK",
+            "https://{lms_domain}/courses/{course_id}/info",
         ),
+    ).format(lms_domain=lms_domain, course_id=str(course_id))
+
+    enrollment_count = CourseEnrollment.objects.filter(course_id=course_id).count()
+
+    data = {
+        "resource_link": resource_link,
         "start": course_start,
         "end": course_end,
         "enrollment_start": enrollment_start,
         "enrollment_end": enrollment_end,
         "languages": [course.language or settings.LANGUAGE_CODE],
-        "enrollment_count": CourseEnrollment.objects.filter(
-            course_id=course_id
-        ).count(),
+        "enrollment_count": enrollment_count,
         "catalog_visibility": course.catalog_visibility,
     }
 
@@ -101,8 +108,7 @@ def sync_course_run_information_to_richie(*args, **kwargs) -> Dict[str, bool]:
             response = requests.post(
                 richie_url,
                 json=data,
-                headers={
-                    "Authorization": "SIG-HMAC-SHA256 {:s}".format(signature)},
+                headers={"Authorization": "SIG-HMAC-SHA256 {:s}".format(signature)},
                 timeout=timeout,
             )
             response.raise_for_status()
