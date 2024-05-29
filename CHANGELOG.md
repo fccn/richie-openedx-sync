@@ -8,6 +8,8 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.4.0] - 2024-05-29
+
 ### Added
 
 - Added the `resource_link_template` configuration on hooks, to change the default format
