@@ -8,6 +8,15 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Added the `resource_link_template` configuration on hooks, to change the default format
+  link for each course.
+
+### Changed
+
+- Removed the `RICHIE_OPENEDX_SYNC_LOG_REQUESTS` setting with lazy logging.
+
 ## [1.3.0] - 2024-04-18
 
 ### Changed
