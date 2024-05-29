@@ -33,9 +33,25 @@ So you should have your folders like this on your machine:
 ```
 
 ## Active the `richie_openedx_sync` Django application
-On the Open edX devstack edit the file and add the `richie_openedx_sync` app
-to the `INSTALLED_APPS` on the file `cms/envs/devstack.py` and `lms/envs/devstack.py` 
-within edx-platform.
+On the Open edX devstack, inside the `edx-plaform` project edit the files:
+- `cms/envs/private.py`
+- `lms/envs/private.py`
+With the content of:
+```python
+from .devstack import INSTALLED_APPS
+from .devstack import INSTALLED_APPS
+INSTALLED_APPS += ['richie_openedx_sync']
+RICHIE_OPENEDX_SYNC_COURSE_HOOKS=[
+    {
+        "secret": "changeme",
+        "url": "http://richie.local.dev:8070/api/v1.0/course-runs-sync/",
+        "timeout": "6",
+        "resource_link_template": "http://{lms_domain}/courses/{course_id}/info",
+    },
+]
+```
+This adds the `richie_openedx_sync` application to the Django installed applications,
+increase the log verbosity and configure a globally hook for all organizations courses.
 
 ## Hosts
 When your are developing the connection between Open edX and Richie, because both stacks aren't
@@ -49,23 +65,24 @@ Find your local IP Address, eg. like 192.168....
 
 Add the next line to the `/etc/hosts` file of your host machine:
 ```bash
-make studio-shell
+make dev.shell.studio
 vim /etc/hosts
 <Your local IP Address> richie.local.dev
 ```
 
-## Open edX site configuration
+## Multi site
+If you have a multi site instance, you can configure a specific hook for that Organization.
 
-Open your Open edX devstack, eg. http://localhost:18000, on the 
-[Site Configuration](http://localhost:18000/admin/site_configuration/siteconfiguration/1/change/)
-Django administration page add the next configurations ( don't forget to replace the secret! ):
+Example of Open edX [Site Configuration](http://localhost:18000/admin/site_configuration/siteconfiguration/1/change/)
+Django administration page add the next configurations:
 
 ```json
 "RICHIE_OPENEDX_SYNC_COURSE_HOOKS": [
     {
         "secret": "changeme",
         "url": "http://richie.local.dev:8070/api/v1.0/course-runs-sync/",
-        "timeout": "6"
+        "timeout": "6",
+        "resource_link_template": "http://{lms_domain}/courses/{course_id}/info"
     }
 ]
 ```

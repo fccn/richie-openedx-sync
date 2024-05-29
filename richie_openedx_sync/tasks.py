@@ -38,6 +38,17 @@ def sync_course_run_information_to_richie(*args, **kwargs) -> Dict[str, bool]:
         raise ValueError("No course found with the course_id '{}'".format(course_id))
 
     org = course_key.org
+
+    hooks = configuration_helpers.get_value_for_org(
+        org,
+        "RICHIE_OPENEDX_SYNC_COURSE_HOOKS",
+        getattr(settings, "RICHIE_OPENEDX_SYNC_COURSE_HOOKS"),
+    )
+    if len(hooks) == 0:
+        log.info("No richie course hook found for organization '%s'. Please configure the "
+            "'RICHIE_OPENEDX_SYNC_COURSE_HOOKS' setting or as site configuration", org)
+        return {}
+
     lms_domain = configuration_helpers.get_value_for_org(
         org, "LMS_BASE", settings.LMS_BASE
     )
@@ -50,92 +61,65 @@ def sync_course_run_information_to_richie(*args, **kwargs) -> Dict[str, bool]:
     # course start date for the enrollment start date when the enrollment start date isn't defined.
     enrollment_start = enrollment_start or course_start
 
-    resource_link = configuration_helpers.get_value_for_org(
-        org,
-        "RICHIE_OPENEDX_SYNC_RESOURCE_LINK",
-        getattr(
-            settings,
-            "RICHIE_OPENEDX_SYNC_RESOURCE_LINK",
-            "https://{lms_domain}/courses/{course_id}/info",
-        ),
-    ).format(lms_domain=lms_domain, course_id=str(course_id))
-
-    enrollment_count = CourseEnrollment.objects.filter(course_id=course_id).count()
-
-    data = {
-        "resource_link": resource_link,
-        "start": course_start,
-        "end": course_end,
-        "enrollment_start": enrollment_start,
-        "enrollment_end": enrollment_end,
-        "languages": [course.language or settings.LANGUAGE_CODE],
-        "enrollment_count": enrollment_count,
-        "catalog_visibility": course.catalog_visibility,
-    }
-
-    hooks = configuration_helpers.get_value_for_org(
-        org,
-        "RICHIE_OPENEDX_SYNC_COURSE_HOOKS",
-        getattr(settings, "RICHIE_OPENEDX_SYNC_COURSE_HOOKS", []),
-    )
-    if not hooks:
-        msg = (
-            "No richie course hook found for organization '{}'. Please configure the "
-            "'RICHIE_OPENEDX_SYNC_COURSE_HOOKS' setting or as site configuration"
-        ).format(org)
-        log.info(msg)
-        return {}
-
-    log_requests = configuration_helpers.get_value_for_org(
-        org,
-        "RICHIE_OPENEDX_SYNC_LOG_REQUESTS",
-        getattr(settings, "RICHIE_OPENEDX_SYNC_LOG_REQUESTS", False),
-    )
+    enrollment_count = None
 
     result = {}
 
     for hook in hooks:
+        # calculate enrollment count just once per hook
+        if not enrollment_count:
+            enrollment_count = CourseEnrollment.objects.filter(
+                course_id=course_id
+            ).count()
+
+        resource_link = hook.get(
+            "resource_link_template", "https://{lms_domain}/courses/{course_id}/info"
+        ).format(lms_domain=lms_domain, course_id=str(course_id))
+
+        data = {
+            "resource_link": resource_link,
+            "start": course_start,
+            "end": course_end,
+            "enrollment_start": enrollment_start,
+            "enrollment_end": enrollment_end,
+            "languages": [course.language or settings.LANGUAGE_CODE],
+            "enrollment_count": enrollment_count,
+            "catalog_visibility": course.catalog_visibility,
+        }
+
         signature = hmac.new(
             hook["secret"].encode("utf-8"),
             msg=json.dumps(data).encode("utf-8"),
             digestmod=hashlib.sha256,
         ).hexdigest()
 
-        richie_url = hook.get("url")
+        richie_url = str(hook.get("url"))
         timeout = int(hook.get("timeout", 20))
 
         try:
+            log.info("Sending to Richie %s the data %s", richie_url, str(data))
             response = requests.post(
                 richie_url,
                 json=data,
-                headers={"Authorization": "SIG-HMAC-SHA256 {:s}".format(signature)},
+                headers={"Authorization": "SIG-HMAC-SHA256 {signature}".format(signature=signature)},
                 timeout=timeout,
             )
             response.raise_for_status()
             result[richie_url] = True
-            if log_requests:
-                status_code = response.status_code
-                msg = "Synchronized the course {} to richie site {} it returned the HTTP status code {}".format(
-                    course_key, richie_url, status_code
-                )
-                log.info(msg)
-                log.info(response.content)
+
+            log.info("Synchronized the course %s to richie site %s it returned the HTTP status code %d response content: %s".format(
+                course_id, richie_url, response.status_code, response.content
+            ))
         except requests.exceptions.HTTPError as e:
-            status_code = response.status_code
-            msg = "Error synchronizing course {} to richie site {} it returned the HTTP status code {}".format(
-                course_key, richie_url, status_code
+            log.warning("Error synchronizing course %s to richie site %s it returned the HTTP status code %d with response content of %s",
+                course_id, richie_url, response.status_code, response.content
             )
             log.warning(e, exc_info=True)
-            log.warning(msg)
-            log.warning(response.content)
             result[richie_url] = False
 
         except requests.exceptions.RequestException as e:
-            msg = "Error synchronizing course {} to richie site {}".format(
-                course_key, richie_url
-            )
+            log.warning("Error synchronizing course %s to richie site %s", course_id, richie_url)
             log.warning(e, exc_info=True)
-            log.warning(msg)
             result[richie_url] = False
 
     return result
