@@ -5,3 +5,10 @@ settings.RICHIE_OPENEDX_SYNC_COURSE_HOOKS = getattr(settings, "ENV_TOKENS", {}).
     "RICHIE_OPENEDX_SYNC_COURSE_HOOKS",
     getattr(settings, "RICHIE_OPENEDX_SYNC_COURSE_HOOKS", []),
 )
+
+settings.RICHIE_OPENEDX_SYNC_LANGUAGE_MAPPING = getattr(
+    settings, "ENV_TOKENS", {}
+).get(
+    "RICHIE_OPENEDX_SYNC_LANGUAGE_MAPPING",
+    getattr(settings, "RICHIE_OPENEDX_SYNC_LANGUAGE_MAPPING", {"pt_PT": "pt"}),
+)
