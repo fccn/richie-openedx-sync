@@ -9,8 +9,9 @@ from celery import shared_task
 from django.conf import settings
 from opaque_keys.edx.keys import CourseKey
 from openedx.core.djangoapps.site_configuration import helpers as configuration_helpers
-from common.djangoapps.student.models import CourseEnrollment
+from richie_openedx_sync.utils import transform_language
 from xmodule.modulestore.django import modulestore
+from common.djangoapps.student.models import CourseEnrollment
 
 log = logging.getLogger(__name__)
 
@@ -44,7 +45,7 @@ def sync_course_run_information_to_richie(*args, **kwargs) -> Dict[str, bool]:
         "RICHIE_OPENEDX_SYNC_COURSE_HOOKS",
         getattr(settings, "RICHIE_OPENEDX_SYNC_COURSE_HOOKS"),
     )
-    if len(hooks) == 0:
+    if not hooks:
         log.info("No richie course hook found for organization '%s'. Please configure the "
             "'RICHIE_OPENEDX_SYNC_COURSE_HOOKS' setting or as site configuration", org)
         return {}
@@ -61,17 +62,12 @@ def sync_course_run_information_to_richie(*args, **kwargs) -> Dict[str, bool]:
     # course start date for the enrollment start date when the enrollment start date isn't defined.
     enrollment_start = enrollment_start or course_start
 
-    enrollment_count = None
+    enrollment_count = CourseEnrollment.objects.filter(course_id=course_id).count()
+    languages = [transform_language(org, course.language or settings.LANGUAGE_CODE)]
 
     result = {}
 
     for hook in hooks:
-        # calculate enrollment count just once per hook
-        if not enrollment_count:
-            enrollment_count = CourseEnrollment.objects.filter(
-                course_id=course_id
-            ).count()
-
         resource_link = hook.get(
             "resource_link_template", "https://{lms_domain}/courses/{course_id}/info"
         ).format(lms_domain=lms_domain, course_id=str(course_id))
@@ -82,7 +78,7 @@ def sync_course_run_information_to_richie(*args, **kwargs) -> Dict[str, bool]:
             "end": course_end,
             "enrollment_start": enrollment_start,
             "enrollment_end": enrollment_end,
-            "languages": [course.language or settings.LANGUAGE_CODE],
+            "languages": languages,
             "enrollment_count": enrollment_count,
             "catalog_visibility": course.catalog_visibility,
         }
@@ -107,9 +103,13 @@ def sync_course_run_information_to_richie(*args, **kwargs) -> Dict[str, bool]:
             response.raise_for_status()
             result[richie_url] = True
 
-            log.info("Synchronized the course %s to richie site %s it returned the HTTP status code %d response content: %s".format(
-                course_id, richie_url, response.status_code, response.content
-            ))
+            log.info(
+                "Synchronized the course %s to richie site %s it returned the HTTP status code %d response content: %s",
+                course_id,
+                richie_url,
+                response.status_code,
+                response.content,
+            )
         except requests.exceptions.HTTPError as e:
             log.warning("Error synchronizing course %s to richie site %s it returned the HTTP status code %d with response content of %s",
                 course_id, richie_url, response.status_code, response.content
