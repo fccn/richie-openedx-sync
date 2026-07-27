@@ -8,6 +8,12 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Added the `RICHIE_OPENEDX_SYNC_INCLUDE_PAYMENT_FIELDS` setting, disabled by default, that also
+  sends the `offer`, `price`, `price_currency`, `certificate_offer` and `certificate_price` fields
+  to Richie, computed from the Open edX course modes.
+
 ## [1.4.0] - 2024-05-29
 
 ### Added

@@ -52,6 +52,7 @@ import sys
 
 # Mock out the Open edX modules to prevent import cascades
 sys.modules['common.djangoapps.student.models'] = MagicMock()
+sys.modules['common.djangoapps.course_modes.models'] = MagicMock()
 sys.modules['xmodule.modulestore.django'] = MagicMock()
 sys.modules['openedx.core.djangoapps.site_configuration.helpers'] = MagicMock()
 

@@ -12,8 +12,86 @@ from openedx.core.djangoapps.site_configuration import helpers as configuration_
 from richie_openedx_sync.utils import transform_language
 from xmodule.modulestore.django import modulestore
 from common.djangoapps.student.models import CourseEnrollment
+from common.djangoapps.course_modes.models import CourseMode
 
 log = logging.getLogger(__name__)
+
+RICHIE_OFFER_FREE = "free"
+RICHIE_OFFER_PARTIALLY_FREE = "partially_free"
+RICHIE_OFFER_PAID = "paid"
+
+
+def _parse_boolean_setting(value):
+    """
+    Coerce a setting to a boolean, site configuration values can arrive as strings.
+    """
+    if isinstance(value, str):
+        return value.strip().lower() in ("1", "true", "yes", "on")
+    return bool(value)
+
+
+def _get_course_payment_fields(course_key):
+    """
+    Build the Richie payment fields out of the Open edX course modes of a course.
+
+    | Open edX course modes | offer          | price | certificate_offer | certificate_price |
+    | --------------------- | -------------- | ----- | ----------------- | ----------------- |
+    | honor                 | free           | -     | free              | -                 |
+    | audit + verified      | partially_free | -     | paid              | verified price    |
+    | honor + verified      | free           | -     | paid              | verified price    |
+    | verified              | paid           | price | free              | -                 |
+
+    `audit` and `honor` are both free of charge, but only `honor` is eligible for a
+    certificate. So a course that can be completed on `honor` is entirely `free`, while the
+    same course on `audit` is only `partially_free`.
+
+    When there is a free way in, whatever is paid buys the certificate. When there isn't, the
+    price buys the course itself and the certificate comes along with it at no extra cost.
+
+    Returns:
+        dict: the Richie course run payment fields. `price_currency` is only present when
+        there is a price to go with it, because Richie doesn't accept a null currency.
+    """
+    modes = CourseMode.modes_for_course(course_id=course_key)
+    paid_modes = [mode for mode in modes if mode.min_price > 0]
+    free_modes = [mode for mode in modes if mode.min_price <= 0]
+
+    # The cheapest paid mode is the one advertised on Richie.
+    cheapest_paid_mode = min(paid_modes, key=lambda mode: mode.min_price, default=None)
+
+    if cheapest_paid_mode is None:
+        return {
+            "offer": RICHIE_OFFER_FREE,
+            "price": None,
+            "certificate_offer": RICHIE_OFFER_FREE,
+            "certificate_price": None,
+        }
+
+    if free_modes:
+        offer = (
+            RICHIE_OFFER_FREE
+            if any(CourseMode.is_eligible_for_certificate(mode.slug) for mode in free_modes)
+            else RICHIE_OFFER_PARTIALLY_FREE
+        )
+        fields = {
+            "offer": offer,
+            "price": None,
+            "certificate_offer": RICHIE_OFFER_PAID,
+            "certificate_price": cheapest_paid_mode.min_price,
+        }
+    else:
+        fields = {
+            "offer": RICHIE_OFFER_PAID,
+            "price": cheapest_paid_mode.min_price,
+            "certificate_offer": RICHIE_OFFER_FREE,
+            "certificate_price": None,
+        }
+
+    currency = (cheapest_paid_mode.currency or "").upper()
+    if currency:
+        fields["price_currency"] = currency
+
+    return fields
 
 
 @shared_task
@@ -43,12 +121,19 @@ def sync_course_run_information_to_richie(*args, **kwargs) -> Dict[str, bool]:
     hooks = configuration_helpers.get_value_for_org(
         org,
         "RICHIE_OPENEDX_SYNC_COURSE_HOOKS",
-        getattr(settings, "RICHIE_OPENEDX_SYNC_COURSE_HOOKS"),
+        getattr(settings, "RICHIE_OPENEDX_SYNC_COURSE_HOOKS", []),
     )
     if not hooks:
         log.info("No richie course hook found for organization '%s'. Please configure the "
             "'RICHIE_OPENEDX_SYNC_COURSE_HOOKS' setting or as site configuration", org)
         return {}
+
+    include_payment_fields = configuration_helpers.get_value_for_org(
+        org,
+        "RICHIE_OPENEDX_SYNC_INCLUDE_PAYMENT_FIELDS",
+        getattr(settings, "RICHIE_OPENEDX_SYNC_INCLUDE_PAYMENT_FIELDS", False),
+    )
+    include_payment_fields = _parse_boolean_setting(include_payment_fields)
 
     lms_domain = configuration_helpers.get_value_for_org(
         org, "LMS_BASE", settings.LMS_BASE
@@ -64,6 +149,7 @@ def sync_course_run_information_to_richie(*args, **kwargs) -> Dict[str, bool]:
 
     enrollment_count = CourseEnrollment.objects.filter(course_id=course_id).count()
     languages = [transform_language(org, course.language or settings.LANGUAGE_CODE)]
+    payment_fields = _get_course_payment_fields(course_key) if include_payment_fields else {}
 
     result = {}
 
@@ -81,6 +167,7 @@ def sync_course_run_information_to_richie(*args, **kwargs) -> Dict[str, bool]:
             "languages": languages,
             "enrollment_count": enrollment_count,
             "catalog_visibility": course.catalog_visibility,
+            **payment_fields,
         }
 
         signature = hmac.new(
