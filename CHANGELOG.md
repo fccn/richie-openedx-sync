@@ -14,6 +14,12 @@ Versioning](https://semver.org/spec/v2.0.0.html).
   sends the `offer`, `price`, `price_currency`, `certificate_offer` and `certificate_price` fields
   to Richie, computed from the Open edX course modes.
 
+### Fixed
+
+- Fixed a crash in the LMS to Richie synchronization when a course language isn't compatible
+  between Open edX and Richie (e.g. `pt_PT` vs `pt`), by adding a `transform_language()` mapping
+  step configurable via the `RICHIE_OPENEDX_SYNC_LANGUAGE_MAPPING` setting.
+
 ## [1.4.0] - 2024-05-29
 
 ### Added
