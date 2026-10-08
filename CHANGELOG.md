@@ -8,6 +8,8 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-10-08
+
 ### Added
 
 - Added the `RICHIE_OPENEDX_SYNC_INCLUDE_PAYMENT_FIELDS` setting, disabled by default, that also
