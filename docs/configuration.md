@@ -55,6 +55,21 @@ edX, so that value is never sent.
 Note that this requires a Richie version that supports these fields on the course runs sync API,
 Richie 3.4.0 or newer.
 
+- `RICHIE_OPENEDX_SYNC_ENROLLMENT_DEBOUNCE_SECONDS` optional, defaults to `0` (disabled). Every
+  enrollment queues a synchronization of its course, so a burst of enrollments, for example when a
+  course starts, queues hundreds of tasks that send the same course data to Richie. With a value
+  above `0` the first enrollment of a course schedules a single synchronization that starts after
+  that many seconds (plus a few seconds of margin) and the next enrollments of the same course are
+  skipped until the window ends. The task reads the course data when it runs, so it sends the
+  final `enrollment_count`. It is configured globally, using Django settings or the `ENV_TOKENS`
+  of the production mode, not per organization.
+  - The window is kept in the Django cache, so it is shared by all the LMS processes when the
+    cache is shared. If the cache is not available the synchronization is queued without a
+    debounce, it is never lost.
+  - Keep it well below the visibility timeout of the broker. With Redis, a delayed task that a
+    worker held when it stopped only returns to the queue after that timeout.
+  - The synchronization triggered by a course publish is never debounced.
+
 ## Multi site
 If you have a multi site instance, you can configure a specific hook for that Organization.
 

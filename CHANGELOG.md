@@ -8,6 +8,14 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Added the `RICHIE_OPENEDX_SYNC_ENROLLMENT_DEBOUNCE_SECONDS` setting, disabled by default, that
+  debounces the synchronization triggered by enrollments. The first enrollment of a course
+  schedules a single synchronization that starts after the window and the next ones are skipped
+  until it ends, instead of queueing one task per enrollment. The synchronization triggered by a
+  course publish is never debounced.
+
 ## [1.5.0] - 2026-10-08
 
 ### Added
